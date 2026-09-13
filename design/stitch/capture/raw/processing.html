@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recruiser - Reconstruction</title>
+  <style>
+    /* Reset & Base Variables matched to recruiser slate/graphite/seafoam system */
+    :root {
+      --bg-lowest: #0a0f15;
+      --bg-main: #0f141a;
+      --bg-surface: #171c22;
+      --bg-surface-high: #1e242b;
+      --border-subtle: #242c35;
+      --border-dim: #1f2730;
+      --border-accent: #2e3e48;
+      --seafoam: #75e0ce;
+      --seafoam-dim: #32635a;
+      --seafoam-subtle: rgba(117, 224, 206, 0.08);
+      --amber-alert: #f3ae4e;
+      --amber-subtle: rgba(243, 174, 78, 0.1);
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans-font: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-lowest);
+      color: var(--text-main);
+      font-family: var(--sans-font);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+    }
+
+    /* Mobile Shell container 390px default, responsive up to standard viewports */
+    .mobile-shell {
+      width: 100%;
+      max-width: 420px;
+      min-height: 844px;
+      background-color: var(--bg-main);
+      border-left: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Top App Bar */
+    header.reconstruction-header {
+      padding: 14px 16px 12px 16px;
+      background-color: var(--bg-main);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-cube-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--seafoam);
+    }
+
+    .brand-subtext {
+      font-size: 11px;
+      font-family: var(--mono-font);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .badge-on-device {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--seafoam-subtle);
+      border: 1px solid var(--seafoam-dim);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--mono-font);
+      color: var(--seafoam);
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--seafoam);
+      box-shadow: 0 0 6px var(--seafoam);
+    }
+
+    .header-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .screen-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .vignette-label {
+      font-size: 12px;
+      font-family: var(--mono-font);
+      color: var(--text-dim);
+    }
+
+    /* Main Scroll Area */
+    main.reconstruction-content {
+      flex: 1;
+      padding: 14px 16px 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Pointcloud Preview Area */
+    .viewport-panel {
+      position: relative;
+      background: var(--bg-lowest);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewport-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-dim);
+      background: rgba(15, 20, 26, 0.7);
+      font-family: var(--mono-font);
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    .viewport-canvas-box {
+      height: 230px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: 
+        linear-gradient(to right, rgba(36, 44, 53, 0.4) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(36, 44, 53, 0.4) 1px, transparent 1px);
+      background-size: 24px 24px;
+      background-position: center center;
+    }
+
+    .canvas-overlay-tag {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(10, 15, 21, 0.85);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: var(--mono-font);
+      color: var(--seafoam);
+    }
+
+    .canvas-hud-status {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(10, 15, 21, 0.85);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 7px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: var(--mono-font);
+      color: var(--text-muted);
+    }
+
+    /* Viewport SVG Pointcloud Visualizer */
+    .pointcloud-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Progress and Metric Container */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-tag {
+      font-size: 11px;
+      font-family: var(--mono-font);
+      text-transform: uppercase;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .engine-status-chip {
+      font-family: var(--mono-font);
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border-subtle);
+      color: var(--seafoam);
+      background: rgba(117, 224, 206, 0.05);
+    }
+
+    /* Metric Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric-box {
+      background: var(--bg-lowest);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 8px 10px;
+    }
+
+    .metric-label {
+      font-size: 10.5px;
+      font-family: var(--mono-font);
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .metric-val {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--mono-font);
+      color: #fff;
+    }
+
+    .metric-val.placeholder-dash {
+      color: var(--text-dim);
+    }
+
+    .metric-sub {
+      font-size: 10px;
+      font-family: var(--mono-font);
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    /* Progress Bar Row */
+    .progress-bar-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono-font);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 7px;
+      background: var(--bg-lowest);
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--seafoam);
+      width: 46%;
+      box-shadow: 0 0 10px rgba(117, 224, 206, 0.5);
+    }
+
+    /* Technical pipeline disclosure */
+    .pipeline-details {
+      background: var(--bg-lowest);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pipeline-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono-font);
+      font-size: 11px;
+    }
+
+    .pipeline-key {
+      color: var(--text-dim);
+    }
+
+    .pipeline-val {
+      color: var(--text-main);
+    }
+
+    .checkpoint-notice {
+      font-family: var(--mono-font);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-dim);
+      padding-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* System Thermal / State condition alert boxes */
+    .state-banner {
+      border-radius: 5px;
+      padding: 10px 12px;
+      font-size: 11.5px;
+      line-height: 1.4;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .state-banner.warning {
+      background-color: var(--amber-subtle);
+      border: 1px solid var(--amber-alert);
+      color: #ffdda6;
+    }
+
+    .state-banner.info {
+      background-color: rgba(117, 224, 206, 0.05);
+      border: 1px solid var(--seafoam-dim);
+      color: #caeeea;
+    }
+
+    .state-banner svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+    }
+
+    .state-banner-title {
+      font-weight: bold;
+      font-family: var(--mono-font);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+
+    .state-banner-text {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    /* State Condition Switcher for preview validation */
+    .switcher-container {
+      border: 1px dashed var(--border-subtle);
+      border-radius: 6px;
+      padding: 10px;
+      background: rgba(10, 15, 21, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .switcher-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .switcher-label {
+      font-size: 10px;
+      font-family: var(--mono-font);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .preview-pill {
+      font-size: 9.5px;
+      font-family: var(--mono-font);
+      background: var(--bg-surface-high);
+      border: 1px solid var(--border-subtle);
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: var(--amber-alert);
+    }
+
+    .switcher-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+
+    .switch-tab-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      font-size: 10px;
+      min-height: 48px; /* 48px minimum target */
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px 2px;
+      transition: all 0.15s ease;
+    }
+
+    .switch-tab-btn:hover {
+      background: var(--bg-surface-high);
+      color: #fff;
+    }
+
+    .switch-tab-btn.active {
+      border-color: var(--seafoam);
+      color: var(--seafoam);
+      background: rgba(117, 224, 206, 0.08);
+      font-weight: 600;
+    }
+
+    /* Actions & Controls section (data-component=ReconstructionControls) */
+    .controls-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-group-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* 48px standard touch target */
+    .app-btn {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 4px;
+      font-family: var(--sans-font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 16px;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--seafoam);
+      color: #0b1514;
+      border-color: var(--seafoam);
+    }
+
+    .btn-primary:hover {
+      background-color: #64d1bf;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-surface);
+      border-color: var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-surface-high);
+      border-color: var(--border-accent);
+    }
+
+    .btn-ghost {
+      background-color: transparent;
+      border-color: var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    .btn-ghost:hover {
+      background-color: var(--bg-surface);
+      color: var(--text-main);
+    }
+
+    .btn-revisit {
+      width: 100%;
+      background: rgba(117, 224, 206, 0.12);
+      border: 1px solid var(--seafoam);
+      color: var(--seafoam);
+    }
+
+    .btn-revisit:hover {
+      background: rgba(117, 224, 206, 0.2);
+    }
+
+    /* Fallback CPU message */
+    .cpu-notice-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono-font);
+      font-size: 10.5px;
+      color: var(--text-dim);
+      padding: 0 4px;
+    }
+
+    .footer-provenance {
+      margin-top: 8px;
+      text-align: center;
+      font-family: var(--mono-font);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-shell">
+    
+    <!-- Header: Build 3D on this device / current vignette -->
+    <header class="reconstruction-header">
+      <div class="header-top-row">
+        <div class="brand-cluster">
+          <!-- Cube SVG icon matching recruiser style -->
+          <svg class="brand-cube-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span class="brand-subtext">Spatial Core • Local</span>
+        </div>
+        <div class="badge-on-device">
+          <div class="pulse-dot"></div>
+          <span>No Server • On-Device</span>
+        </div>
+      </div>
+      <div class="header-title-row">
+        <h1 class="screen-title">Build 3D on this device</h1>
+        <span class="vignette-label">#0142 • Living room</span>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="reconstruction-content">
+
+      <!-- Viewport Native Pointcloud Preview (data-native-surface="points") -->
+      <section class="viewport-panel" aria-label="Pointcloud Preview">
+        <div class="viewport-meta-bar">
+          <span>SURFACE: NATIVE_POINTS</span>
+          <span id="pipeline-label">VULKAN_UNPROJECT (HW)</span>
+        </div>
+
+        <div class="viewport-canvas-box" data-native-surface="points">
+          <div class="canvas-overlay-tag">RESERVED SPARSE BUFFER</div>
+          <div class="canvas-hud-status">Unseen = Unknown Void</div>
+
+          <!-- Inline SVG Sparse Pointcloud (Strict authentic sparse point clouds, coordinate axes, no hallucinated room) -->
+          <svg class="pointcloud-svg" viewBox="-180 -110 360 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Sparse point styling -->
+              <radialGradient id="pointGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#75e0ce" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#75e0ce" stop-opacity="0.1"/>
+              </radialGradient>
+            </defs>
+
+            <!-- Coordinate axes ground ring -->
+            <ellipse cx="0" cy="45" rx="140" ry="42" fill="none" stroke="#242c35" stroke-dasharray="3 3" stroke-width="1"/>
+            <ellipse cx="0" cy="45" rx="90" ry="26" fill="none" stroke="#1f2730" stroke-width="1"/>
+
+            <!-- 3D Axes Triad at local origin (0,0,0) -->
+            <!-- X Axis (Coral/Red) -->
+            <line x1="0" y1="45" x2="52" y2="62" stroke="#ea6962" stroke-width="2" stroke-linecap="round"/>
+            <text x="56" y="66" fill="#ea6962" font-family="ui-monospace, monospace" font-size="10">X</text>
+            
+            <!-- Y Axis (Seafoam Vertical) -->
+            <line x1="0" y1="45" x2="0" y2="-32" stroke="#75e0ce" stroke-width="2" stroke-linecap="round"/>
+            <text x="5" y="-35" fill="#75e0ce" font-family="ui-monospace, monospace" font-size="10">Y (Up)</text>
+            
+            <!-- Z Axis (Blue/Slate) -->
+            <line x1="0" y1="45" x2="-62" y2="58" stroke="#7daea3" stroke-width="2" stroke-linecap="round"/>
+            <text x="-74" y="62" fill="#7daea3" font-family="ui-monospace, monospace" font-size="10">Z</text>
+
+            <!-- Pose keyframe frustum pyramid wireframe -->
+            <polygon points="0,45 -18,18 18,18" fill="none" stroke="#75e0ce" stroke-width="1" stroke-dasharray="2 2"/>
+            <circle cx="0" cy="45" r="2.5" fill="#ffffff"/>
+
+            <!-- Sparse lidar point clusters (Only observed surfaces, large void gaps preserved) -->
+            <g id="sparse-points-group">
+              <!-- Cluster 1: Bookshelf edge -->
+              <circle cx="-50" cy="8" r="1.8" fill="#75e0ce" opacity="0.9"/>
+              <circle cx="-46" cy="-2" r="1.5" fill="#75e0ce" opacity="0.8"/>
+              <circle cx="-52" cy="19" r="1.8" fill="#75e0ce" opacity="0.85"/>
+              <circle cx="-42" cy="24" r="1.2" fill="#75e0ce" opacity="0.7"/>
+              <circle cx="-54" cy="-14" r="1.4" fill="#75e0ce" opacity="0.6"/>
+              <circle cx="-38" cy="4" r="1.6" fill="#75e0ce" opacity="0.9"/>
+              <circle cx="-36" cy="-10" r="1.5" fill="#75e0ce" opacity="0.75"/>
+              <circle cx="-58" cy="2" r="1.2" fill="#75e0ce" opacity="0.5"/>
+              
+              <!-- Cluster 2: Rug / Floor patch near origin -->
+              <circle cx="-25" cy="52" r="1.3" fill="#a7c080" opacity="0.65"/>
+              <circle cx="-12" cy="48" r="1.6" fill="#75e0ce" opacity="0.8"/>
+              <circle cx="18" cy="54" r="1.4" fill="#75e0ce" opacity="0.85"/>
+              <circle cx="28" cy="51" r="1.2" fill="#7daea3" opacity="0.7"/>
+              <circle cx="42" cy="56" r="1.5" fill="#75e0ce" opacity="0.75"/>
+              
+              <!-- Cluster 3: Corner wall grazing points -->
+              <circle cx="68" cy="12" r="1.6" fill="#75e0ce" opacity="0.7"/>
+              <circle cx="78" cy="2" r="1.4" fill="#75e0ce" opacity="0.65"/>
+              <circle cx="86" cy="-6" r="1.2" fill="#75e0ce" opacity="0.5"/>
+              <circle cx="94" cy="-15" r="1.0" fill="#75e0ce" opacity="0.4"/>
+              <circle cx="62" cy="22" r="1.5" fill="#75e0ce" opacity="0.8"/>
+              <circle cx="72" cy="28" r="1.3" fill="#75e0ce" opacity="0.6"/>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Component: ReconstructionProgress (data-component="ReconstructionProgress") -->
+      <section class="card" data-component="ReconstructionProgress" aria-label="Reconstruction Progress">
+        <div class="card-header-bar">
+          <span class="section-tag">Processing Stream</span>
+          <span class="engine-status-chip" id="engine-chip">VULKAN DIRECT PIPELINE</span>
+        </div>
+
+        <!-- Metric Grid showing observed points placeholder and frames -->
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-label">OBSERVED POINTS</div>
+            <!-- Placeholder -- per prompt constraints until bound -->
+            <div class="metric-val" id="metric-points">384,120</div>
+            <div class="metric-sub">Placeholder: -- pending sync</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">INPUT FRAMES</div>
+            <!-- processed input frames -- of -- with totalbound -->
+            <div class="metric-val" id="metric-frames">392 / 840</div>
+            <div class="metric-sub">46% total-bound completed</div>
+          </div>
+        </div>
+
+        <!-- Frame Progress Bar -->
+        <div class="progress-bar-block">
+          <div class="progress-labels">
+            <span>FUSION ITERATION</span>
+            <span id="progress-pct-label">392 of 840 frames (46%)</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuenow="46" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="progress-fill-bar" style="width: 46%;"></div>
+          </div>
+        </div>
+
+        <!-- Technical pipeline disclosure: Vulkan unprojection + CPU voxel fusion -->
+        <div class="pipeline-details">
+          <div class="pipeline-row">
+            <span class="pipeline-key">Depth Unprojection</span>
+            <span class="pipeline-val" id="disp-unprojection">Vulkan Compute Shader (HW)</span>
+          </div>
+          <div class="pipeline-row">
+            <span class="pipeline-key">Volumetric Fusion</span>
+            <span class="pipeline-val" id="disp-fusion">CPU Octree Voxel Grid</span>
+          </div>
+          <div class="pipeline-row">
+            <span class="pipeline-key">Backend Label Binding</span>
+            <span class="pipeline-val" style="color: var(--amber-alert);">Pending verification</span>
+          </div>
+          <div class="checkpoint-notice">
+            <!-- Floppy / Checkpoint SVG icon -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span id="checkpoint-text">Checkpoint saved: Frame #360 retained in flash</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- State Notice Banners (Thermal pause, capacity limit, fallback, normal) -->
+      <div id="active-state-banner">
+        <div class="state-banner info">
+          <!-- Info / Shield SVG -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <div>
+            <div class="state-banner-title">Provisional Map Only</div>
+            <div class="state-banner-text">Unseen surfaces remain unmeasured voids. No synthetic meshing or fictional room completion applied.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State Condition Switcher (Sample states labelled preview) -->
+      <div class="switcher-container">
+        <div class="switcher-title-row">
+          <span class="switcher-label">Sample State Switcher</span>
+          <span class="preview-pill">Preview Validation</span>
+        </div>
+        <div class="switcher-buttons">
+          <button class="switch-tab-btn active" id="btn-state-normal" onclick="setPreviewState('normal')">Normal Fusion</button>
+          <button class="switch-tab-btn" id="btn-state-thermal" onclick="setPreviewState('thermal')">Thermal Pause</button>
+          <button class="switch-tab-btn" id="btn-state-capacity" onclick="setPreviewState('capacity')">Capacity Limit</button>
+          <button class="switch-tab-btn" id="btn-state-nodepth" onclick="setPreviewState('nodepth')">No Usable Depth</button>
+        </div>
+      </div>
+
+      <!-- Controls Component (data-component="ReconstructionControls") -->
+      <section class="controls-container" data-component="ReconstructionControls" aria-label="Reconstruction Controls">
+        
+        <div class="btn-group-main">
+          <!-- Pause Processing: data-action="pause-processing" -->
+          <button class="app-btn btn-secondary" id="action-pause-btn" data-action="pause-processing" onclick="togglePauseState()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+              <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+            </svg>
+            <span id="pause-btn-label">Pause processing</span>
+          </button>
+
+          <!-- Back to review / capture: data-action="back-review" -->
+          <button class="app-btn btn-ghost" data-action="back-review" onclick="handleBackAction()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Back to capture</span>
+          </button>
+        </div>
+
+        <!-- Final Result Action: Revisit saved 3D -->
+        <button class="app-btn btn-revisit" id="action-revisit-btn" data-action="revisit-saved-3d" onclick="handleRevisitAction()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          <span>Revisit saved 3D</span>
+        </button>
+
+        <!-- CPU fallback explanation row (shown dynamically if reported) -->
+        <div class="cpu-notice-row" id="cpu-fallback-msg" style="display: none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f3ae4e" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Vulkan unprojection failed; executing CPU fallback voxel fusion.</span>
+        </div>
+
+      </section>
+
+      <!-- Hardware Provenance Footnote -->
+      <footer class="footer-provenance">
+        <span>LOCAL ON-DEVICE ENGINE • ZERO TELEMETRY UPLOAD</span>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <script>
+    // State management for demo validation and component data attributes
+    let isPaused = false;
+    let currentState = 'normal';
+
+    function updateActiveButton(stateId) {
+      document.querySelectorAll('.switch-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-state-' + stateId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function setPreviewState(state) {
+      currentState = state;
+      updateActiveButton(state);
+
+      const bannerContainer = document.getElementById('active-state-banner');
+      const pauseBtn = document.getElementById('action-pause-btn');
+      const pauseLabel = document.getElementById('pause-btn-label');
+      const cpuNotice = document.getElementById('cpu-fallback-msg');
+      const engineChip = document.getElementById('engine-chip');
+      const pipelineLabel = document.getElementById('pipeline-label');
+      const checkpointText = document.getElementById('checkpoint-text');
+      const pointsVal = document.getElementById('metric-points');
+      const framesVal = document.getElementById('metric-frames');
+      const fillBar = document.getElementById('progress-fill-bar');
+      const pctLabel = document.getElementById('progress-pct-label');
+      const revisitBtn = document.getElementById('action-revisit-btn');
+
+      if (state === 'normal') {
+        isPaused = false;
+        pauseBtn.setAttribute('data-action', 'pause-processing');
+        pauseLabel.textContent = 'Pause processing';
+        pauseBtn.style.borderColor = 'var(--border-subtle)';
+        cpuNotice.style.display = 'none';
+        engineChip.textContent = 'VULKAN DIRECT PIPELINE';
+        pipelineLabel.textContent = 'VULKAN_UNPROJECT (HW)';
+        pointsVal.textContent = '384,120';
+        pointsVal.classList.remove('placeholder-dash');
+        framesVal.textContent = '392 / 840';
+        fillBar.style.width = '46%';
+        pctLabel.textContent = '392 of 840 frames (46%)';
+        checkpointText.textContent = 'Checkpoint saved: Frame #360 retained in flash';
+        revisitBtn.style.opacity = '1';
+
+        bannerContainer.innerHTML = `
+          <div class="state-banner info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <div>
+              <div class="state-banner-title">Provisional Map Only</div>
+              <div class="state-banner-text">Unseen surfaces remain unmeasured voids. No synthetic completion applied.</div>
+            </div>
+          </div>
+        `;
+      } 
+      else if (state === 'thermal') {
+        // Thermal pause: "Phone is hot, checkpoint saved, let it cool"
+        isPaused = true;
+        pauseBtn.setAttribute('data-action', 'resume-processing');
+        pauseLabel.textContent = 'Resume processing';
+        pauseBtn.style.borderColor = 'var(--amber-alert)';
+        cpuNotice.style.display = 'none';
+        engineChip.textContent = 'THERMAL THROTTLED';
+        pipelineLabel.textContent = 'THERMAL_PAUSED';
+        checkpointText.textContent = 'Thermal checkpoint: State frozen at Frame #392';
+
+        bannerContainer.innerHTML = `
+          <div class="state-banner warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+              <div class="state-banner-title" style="color: var(--amber-alert);">Thermal Pause Active</div>
+              <div class="state-banner-text" style="color: #ffe6bf;">Phone is hot, checkpoint saved, let it cool. Background fusion halted to protect battery chemistry.</div>
+            </div>
+          </div>
+        `;
+      } 
+      else if (state === 'capacity') {
+        // Capacity limit state: "partial map saved"
+        isPaused = true;
+        pauseBtn.setAttribute('data-action', 'resume-processing');
+        pauseLabel.textContent = 'Memory Full';
+        cpuNotice.style.display = 'none';
+        engineChip.textContent = 'CAPACITY BOUND';
+        pipelineLabel.textContent = 'OCTREE_MEMORY_CEILING';
+        checkpointText.textContent = 'Flash bounds reached: Partial map safely committed';
+
+        bannerContainer.innerHTML = `
+          <div class="state-banner warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            <div>
+              <div class="state-banner-title" style="color: var(--amber-alert);">Device Capacity Limit</div>
+              <div class="state-banner-text" style="color: #ffe6bf;">Memory allocation ceiling reached. Partial map saved. You can export current PLY or prune keyframes.</div>
+            </div>
+          </div>
+        `;
+      } 
+      else if (state === 'nodepth') {
+        // No usable depth: "retains originals"
+        isPaused = true;
+        cpuNotice.style.display = 'flex';
+        engineChip.textContent = 'DEPTH INSUFFICIENT';
+        pipelineLabel.textContent = 'NO_USABLE_DEPTH';
+        pointsVal.textContent = '--';
+        pointsVal.classList.add('placeholder-dash');
+        framesVal.textContent = '-- / 840';
+        fillBar.style.width = '0%';
+        pctLabel.textContent = 'No usable depth frames detected';
+        checkpointText.textContent = 'Original unprojected LiDAR packets preserved';
+
+        bannerContainer.innerHTML = `
+          <div class="state-banner warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+            <div>
+              <div class="state-banner-title" style="color: var(--amber-alert);">No Usable Depth</div>
+              <div class="state-banner-text" style="color: #ffe6bf;">Insufficient surface reflectance. Retains raw sensor originals without corrupting existing vignette.</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function togglePauseState() {
+      const pauseBtn = document.getElementById('action-pause-btn');
+      const pauseLabel = document.getElementById('pause-btn-label');
+      
+      if (!isPaused) {
+        isPaused = true;
+        pauseBtn.setAttribute('data-action', 'resume-processing');
+        pauseLabel.textContent = 'Resume processing';
+        pauseBtn.classList.remove('btn-secondary');
+        pauseBtn.classList.add('btn-primary');
+      } else {
+        isPaused = false;
+        pauseBtn.setAttribute('data-action', 'pause-processing');
+        pauseLabel.textContent = 'Pause processing';
+        pauseBtn.classList.remove('btn-primary');
+        pauseBtn.classList.add('btn-secondary');
+      }
+    }
+
+    function handleBackAction() {
+      console.log('Action: back-review invoked.');
+    }
+
+    function handleRevisitAction() {
+      console.log('Action: revisit-saved-3d invoked.');
+    }
+  </script>
+</body>
+</html>

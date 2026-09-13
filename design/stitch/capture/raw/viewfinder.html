@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Recruiser CaptureViewfinderScreen</title>
+<style>
+  :root {
+    --bg-surface: #0a0f15;
+    --bg-surface-dim: #0f141a;
+    --bg-surface-card: #141a22;
+    --bg-surface-elevated: #1b222c;
+    --border-subtle: #242f3d;
+    --border-medium: #354458;
+    --brand-seafoam: #75e0ce;
+    --brand-seafoam-dim: rgba(117, 224, 206, 0.15);
+    --brand-seafoam-glow: rgba(117, 224, 206, 0.35);
+    --brand-amber: #e6a756;
+    --brand-amber-dim: rgba(230, 167, 86, 0.15);
+    --brand-red: #ef5350;
+    --brand-red-dim: rgba(239, 83, 80, 0.18);
+    --text-primary: #e6edf3;
+    --text-secondary: #94a3b8;
+    --text-muted: #5e6f84;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: radial-gradient(circle at 50% 0%, #17212e 0%, #0a0f15 80%);
+    overflow-x: hidden;
+  }
+
+  /* Viewfinder Container matching Fold5 390x844 with dual-pane flexibility on wider viewports */
+  .viewport-shell {
+    width: 100%;
+    max-width: 440px;
+    height: 844px;
+    background-color: var(--bg-surface-dim);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Responsive dual-pane layout for unfolded Fold screens / wider desktops */
+  @media (min-width: 820px) {
+    .viewport-shell {
+      max-width: 844px;
+      height: 680px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      grid-template-rows: auto 1fr;
+      border-radius: 12px;
+    }
+  }
+
+  /* Header Section */
+  header.viewfinder-header {
+    height: 52px;
+    background: rgba(15, 20, 26, 0.94);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 30;
+    grid-column: 1 / -1;
+  }
+
+  .nav-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .btn-icon-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--bg-surface-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .btn-icon-back:hover {
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+    background: var(--bg-surface-elevated);
+  }
+
+  .vignette-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .vignette-context-label {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .vignette-title-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--brand-seafoam);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 1px 4px;
+    margin-left: -4px;
+    border-radius: 4px;
+    cursor: text;
+    transition: background 0.15s;
+  }
+  .vignette-title-input:focus {
+    background: var(--bg-surface-elevated);
+    box-shadow: 0 0 0 1px var(--brand-seafoam);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .badge-cube-indicator {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--brand-seafoam-dim);
+    color: var(--brand-seafoam);
+    border: 1px solid rgba(117, 224, 206, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Main Viewfinder Section */
+  .viewfinder-viewport {
+    position: relative;
+    flex: 1 1 65%;
+    min-height: 480px;
+    background: #000000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Native Camera Surface Slot: transparent div for ARCore window surface pass-through */
+  [data-component="NativeCameraSurface"] {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Subtle technical grid and reticle simulating optical camera pass-through slot */
+  .arcore-surface-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.14;
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, #75e0ce 1px, transparent 1px),
+      linear-gradient(to bottom, #75e0ce 1px, transparent 1px);
+  }
+
+  /* 4:3 Corner Framing Brackets */
+  .bracket-overlay {
+    position: absolute;
+    inset: 20px 16px 20px 16px;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  .corner-bracket {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: rgba(117, 224, 206, 0.45);
+    border-style: solid;
+  }
+  .corner-top-left { top: 0; left: 0; border-width: 2px 0 0 2px; }
+  .corner-top-right { top: 0; right: 0; border-width: 2px 2px 0 0; }
+  .corner-bottom-left { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+  .corner-bottom-right { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+  /* Camera Center Crosshair & AR Origin Reticle */
+  .ar-origin-reticle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.55;
+  }
+
+  /* Viewfinder Telemetry Top HUD */
+  [data-component="CaptureTelemetry"] {
+    position: relative;
+    z-index: 10;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: linear-gradient(180deg, rgba(10, 15, 21, 0.88) 0%, rgba(10, 15, 21, 0.4) 75%, transparent 100%);
+    pointer-events: auto;
+  }
+
+  .telemetry-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .slot-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(20, 26, 34, 0.75);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .telemetry-rec-cluster {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+  }
+
+  .rec-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: rgba(15, 20, 26, 0.85);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--brand-red);
+    box-shadow: 0 0 6px var(--brand-red);
+    display: inline-block;
+  }
+
+  .telemetry-metrics-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .metric-pill {
+    background: rgba(15, 20, 26, 0.85);
+    border: 1px solid var(--border-subtle);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .metric-pill strong {
+    color: var(--brand-seafoam);
+    font-weight: 600;
+  }
+  .metric-pill.tracking-ok {
+    border-color: rgba(117, 224, 206, 0.3);
+  }
+  .metric-pill.tracking-ok .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand-seafoam);
+  }
+
+  /* Guidance Warning Strip */
+  [data-component="CaptureGuidance"] {
+    margin: auto 12px 10px 12px;
+    position: relative;
+    z-index: 10;
+    background: rgba(23, 28, 36, 0.92);
+    border: 1px solid rgba(230, 167, 86, 0.4);
+    border-left: 3px solid var(--brand-amber);
+    padding: 8px 10px;
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .guidance-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--brand-amber);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .guidance-disclaimer {
+    margin-top: 3px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+
+  /* Sidebar pane / Bottom controls zone */
+  .control-dock {
+    background: var(--bg-surface-dim);
+    border-top: 1px solid var(--border-subtle);
+    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 20;
+  }
+
+  @media (min-width: 820px) {
+    .control-dock {
+      border-top: none;
+      border-left: 1px solid var(--border-subtle);
+      padding: 16px;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+  }
+
+  /* Side Diagnostics for Adaptive Wide Layout */
+  .adaptive-pane-diagnostics {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+
+  .diagnostic-card {
+    background: var(--bg-surface-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .diagnostic-card-title {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .diagnostic-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  .stat-item span {
+    color: var(--text-secondary);
+    display: block;
+    font-size: 9px;
+  }
+  .stat-item b {
+    color: var(--brand-seafoam);
+    font-weight: 600;
+  }
+
+  /* Bottom Actions Component */
+  [data-component="CaptureControls"] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .controls-primary-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Standard styled action buttons */
+  .btn-action {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    border-radius: 6px;
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    gap: 4px;
+    text-align: center;
+    user-select: none;
+  }
+
+  .btn-action svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Start Capture prominent CTA */
+  .btn-start {
+    background-color: var(--brand-seafoam);
+    color: #081014;
+    border-color: #8af0df;
+    box-shadow: 0 2px 8px rgba(117, 224, 206, 0.25);
+  }
+  .btn-start:hover {
+    background-color: #8bf0de;
+    transform: translateY(-1px);
+  }
+  .btn-start:active {
+    transform: translateY(0);
+  }
+
+  /* Secondary controls */
+  .btn-secondary {
+    background-color: var(--bg-surface-elevated);
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+  }
+  .btn-secondary:hover {
+    background-color: #242d3a;
+    border-color: #4a5c75;
+  }
+
+  .btn-finish {
+    background-color: var(--bg-surface-card);
+    color: var(--text-secondary);
+    border-color: var(--border-subtle);
+  }
+  .btn-finish:hover {
+    background-color: var(--bg-surface-elevated);
+    color: var(--brand-seafoam);
+    border-color: var(--border-medium);
+  }
+
+  .btn-action[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Stop / Saving Guard Modal simulation (state condition demo) */
+  .saving-lockout-bar {
+    display: none; /* revealed during stop/saving state */
+    background: rgba(11, 17, 24, 0.95);
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    padding: 8px 12px;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--brand-amber);
+  }
+
+  /* Template Hidden Variants according to requirements */
+  .state-templates-hidden {
+    display: none !important;
+  }
+
+  /* Outlined cube logo icon */
+  .cube-icon {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="viewport-shell" data-screen="Recruiser-CaptureViewfinderScreen">
+
+  <!-- Header: Back to My captures + current editable vignette label Living room (sample) -->
+  <header class="viewfinder-header">
+    <div class="nav-group">
+      <a href="#my-captures" class="btn-icon-back" title="Back to My captures" aria-label="Back to My captures">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </a>
+      <div class="vignette-meta">
+        <span class="vignette-context-label">
+          <svg class="cube-icon" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          Capture Vignette
+        </span>
+        <input 
+          type="text" 
+          class="vignette-title-input" 
+          value="Living room" 
+          title="Click to edit vignette label"
+          aria-label="Vignette label"
+        />
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span class="badge-cube-indicator" title="Spatial Core Deterministic Tracking">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+        6DoF READY
+      </span>
+    </div>
+  </header>
+
+  <!-- Main native camera slot occupies 65%+ screen -->
+  <section class="viewfinder-viewport" aria-label="Camera Optical Viewfinder">
+    <!-- Transparent div for native ARCore camera surface -->
+    <div 
+      data-component="NativeCameraSurface" 
+      data-native-surface="camera" 
+      aria-label="ARCore native camera view"
+      role="region"
+    >
+      <div class="arcore-surface-grid"></div>
+    </div>
+
+    <!-- 4:3 Adaptable Corner Framing Brackets -->
+    <div class="bracket-overlay">
+      <div class="corner-bracket corner-top-left"></div>
+      <div class="corner-bracket corner-top-right"></div>
+      <div class="corner-bracket corner-bottom-left"></div>
+      <div class="corner-bracket corner-bottom-right"></div>
+    </div>
+
+    <!-- Reticle origin center -->
+    <div class="ar-origin-reticle">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#75e0ce" stroke-width="1">
+        <circle cx="22" cy="22" r="18" stroke-dasharray="2 4" opacity="0.6"/>
+        <line x1="22" y1="2" x2="22" y2="10"/>
+        <line x1="22" y1="34" x2="22" y2="42"/>
+        <line x1="2" y1="22" x2="10" y2="22"/>
+        <line x1="34" y1="22" x2="42" y2="22"/>
+        <circle cx="22" cy="22" r="2" fill="#75e0ce"/>
+      </svg>
+    </div>
+
+    <!-- Overlay Telemetry: slot label, recording red dot, elapsed 00:12, tracking status, saved frames -->
+    <div data-component="CaptureTelemetry" aria-live="polite">
+      <div class="telemetry-row">
+        <span class="slot-label">
+          <svg class="cube-icon" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          </svg>
+          WORLD FRAME / CAMERA
+        </span>
+
+        <div class="telemetry-rec-cluster">
+          <div class="rec-indicator">
+            <span class="rec-dot"></span>
+            <span>REC</span>
+            <span style="color: var(--brand-seafoam); margin-left: 2px;">00:12</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="telemetry-metrics-bar">
+        <div class="metric-pill tracking-ok">
+          <span class="status-dot"></span>
+          <span>TRACKING:</span>
+          <strong>NOMINAL (6DoF)</strong>
+        </div>
+        <div class="metric-pill">
+          <span>SAVED FRAMES:</span>
+          <strong>360</strong>
+        </div>
+        <div class="metric-pill">
+          <span>DEPTH:</span>
+          <strong>60Hz ACTIVE</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guidance strip with actionable warning & disclaimer -->
+    <div data-component="CaptureGuidance" role="alert">
+      <div class="guidance-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span>Move more slowly</span>
+      </div>
+      <div class="guidance-disclaimer">
+        Provisional guidance; unseen surfaces remain unknown.
+      </div>
+    </div>
+  </section>
+
+  <!-- Side pane / Lower control dock -->
+  <aside class="control-dock">
+    <!-- Adaptive wide telemetry summary (visible on Fold dual-pane & wide layout) -->
+    <div class="adaptive-pane-diagnostics">
+      <div class="diagnostic-card">
+        <div class="diagnostic-card-title">
+          <span>Spatial Buffer</span>
+          <span>HW Trigger ±0.12ms</span>
+        </div>
+        <div class="diagnostic-stats-grid">
+          <div class="stat-item">
+            <span>Buffer Occupancy</span>
+            <b>42.8 MB</b>
+          </div>
+          <div class="stat-item">
+            <span>Point Density</span>
+            <b>14.2k pts/m³</b>
+          </div>
+          <div class="stat-item">
+            <span>IMU Sync</span>
+            <b>200 Hz Gyro</b>
+          </div>
+          <div class="stat-item">
+            <span>Origin Anchor</span>
+            <b>Local Lock</b>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stop / Saving state bar (hidden in default preview, prevents accidental navigation) -->
+    <div class="saving-lockout-bar" id="savingNotice">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span>Finalizing spatial buffer to device storage... Navigation locked.</span>
+    </div>
+
+    <!-- Capture Controls Component: 3 distinct actions, never bare record -->
+    <div data-component="CaptureControls" role="toolbar" aria-label="Capture controls">
+      <div class="controls-primary-row">
+        <!-- Start Capture (Default Preview Ready Action) -->
+        <button 
+          type="button" 
+          class="btn-action btn-start" 
+          data-action="start-capture"
+          title="Start capture session"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"></polygon>
+          </svg>
+          <span>Start capture</span>
+        </button>
+
+        <!-- Pause / Resume Action -->
+        <button 
+          type="button" 
+          class="btn-action btn-secondary" 
+          data-action="pause-capture"
+          title="Pause current frame intake"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="6" y="4" width="4" height="16" fill="currentColor"></rect>
+            <rect x="14" y="4" width="4" height="16" fill="currentColor"></rect>
+          </svg>
+          <span>Pause</span>
+        </button>
+
+        <!-- Finish Capture Action -->
+        <button 
+          type="button" 
+          class="btn-action btn-finish" 
+          data-action="finish-capture"
+          title="Complete capture & proceed to review"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Finish</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- HIDDEN TEMPLATES AS PART OF SAME COMPONENT:
+       Variants: resume-capture button, permission denied state, install ARCore required state -->
+  <div class="state-templates-hidden" aria-hidden="true">
+    <!-- Template Variant: Resume Capture Button -->
+    <button 
+      type="button" 
+      class="btn-action btn-secondary" 
+      data-action="resume-capture"
+      id="tpl-btn-resume"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+      <span>Resume</span>
+    </button>
+
+    <!-- Template: ARCore / Camera Permission Denied -->
+    <div id="tpl-state-permission-denied" class="diagnostic-card" style="border-color: var(--brand-red);">
+      <div style="color: var(--brand-red); font-weight: 600; margin-bottom: 4px;">Camera Permission Required</div>
+      <p style="color: var(--text-secondary); font-size: 11px;">Recruiser requires camera and depth sensor permissions to track 6DoF spatial poses.</p>
+      <button type="button" class="btn-action btn-secondary" style="margin-top: 8px;">Grant Permissions</button>
+    </div>
+
+    <!-- Template: Google Play Services for AR (ARCore) Install / Update Required -->
+    <div id="tpl-state-arcore-install-required" class="diagnostic-card" style="border-color: var(--brand-amber);">
+      <div style="color: var(--brand-amber); font-weight: 600; margin-bottom: 4px;">ARCore Service Update Required</div>
+      <p style="color: var(--text-secondary); font-size: 11px;">Google Play Services for AR is missing or requires an update to stream raw depth maps.</p>
+      <button type="button" class="btn-action btn-start" style="margin-top: 8px;">Install ARCore</button>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

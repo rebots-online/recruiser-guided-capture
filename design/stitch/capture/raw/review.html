@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Recruiser - Capture Review</title>
+  <style>
+    /* Reset & Base Variables */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      /* Recruiser Graphite & Seafoam Design System */
+      --color-surface-lowest: #0a0f15;
+      --color-surface: #0f141a;
+      --color-surface-dim: #0d1217;
+      --color-surface-container: #171c22;
+      --color-surface-container-high: #1f252d;
+      --color-surface-container-highest: #28303a;
+      --color-border: #262e38;
+      --color-border-subtle: #1c232b;
+      --color-primary: #75e0ce;
+      --color-primary-dim: rgba(117, 224, 206, 0.12);
+      --color-primary-hover: #8cf0df;
+      --color-text-primary: #e6edf3;
+      --color-text-secondary: #9aa7b5;
+      --color-text-muted: #627182;
+      --color-warning: #f5a623;
+      --color-warning-dim: rgba(245, 166, 35, 0.12);
+      --color-danger: #f85149;
+      --color-danger-dim: rgba(248, 81, 73, 0.12);
+      --color-success: #3fb950;
+      --font-stack: 'Arimo', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --touch-min: 48px;
+    }
+
+    body {
+      background-color: var(--color-surface-lowest);
+      color: var(--color-text-primary);
+      font-family: var(--font-stack);
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-x: hidden;
+      padding-top: env(safe-area-inset-top, 0);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      padding-left: env(safe-area-inset-left, 0);
+      padding-right: env(safe-area-inset-right, 0);
+    }
+
+    /* Screen Frame / Responsive Viewport Layout */
+    .recruiser-viewport {
+      width: 100%;
+      max-width: 1024px;
+      min-height: 100vh;
+      background-color: var(--color-surface);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border-left: 1px solid var(--color-border-subtle);
+      border-right: 1px solid var(--color-border-subtle);
+    }
+
+    /* Top Navigation Header */
+    .screen-header {
+      background-color: var(--color-surface-dim);
+      border-bottom: 1px solid var(--color-border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-min);
+      height: var(--touch-min);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover, .icon-btn:focus-visible {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background-color: var(--color-primary-dim);
+      outline: none;
+    }
+
+    .title-area {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-tagline {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      font-weight: 700;
+    }
+
+    .header-title-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-demo {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background-color: var(--color-surface-container-highest);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-live-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--color-primary);
+      background-color: var(--color-primary-dim);
+      border: 1px solid rgba(117, 224, 206, 0.3);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--color-primary);
+    }
+
+    /* 2-Pane Adaptive Grid */
+    .screen-workspace {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    @media (min-width: 800px) {
+      .screen-workspace {
+        flex-direction: row;
+        min-height: calc(100vh - 52px);
+      }
+      .workspace-pane-left {
+        width: 52%;
+        border-right: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+      }
+      .workspace-pane-right {
+        width: 48%;
+        overflow-y: auto;
+      }
+    }
+
+    /* Left Pane / Viewport Scrubber */
+    .workspace-pane-left {
+      padding: 16px;
+      background-color: var(--color-surface-dim);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    @media (min-width: 800px) {
+      .workspace-pane-left {
+        border-bottom: none;
+      }
+    }
+
+    /* Editable Vignette Card */
+    .vignette-card {
+      background-color: var(--color-surface-container);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .vignette-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .section-micro-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+    }
+
+    .editable-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .vignette-input {
+      background-color: var(--color-surface-lowest);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-primary);
+      font-family: var(--font-stack);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 10px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .vignette-input:focus {
+      border-color: var(--color-primary);
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag-chip {
+      font-size: 11px;
+      background: var(--color-surface-container-high);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tag-add-btn {
+      background: transparent;
+      border: 1px dashed var(--color-border);
+      color: var(--color-primary);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 26px;
+    }
+
+    .tag-add-btn:hover {
+      border-color: var(--color-primary);
+      background-color: var(--color-primary-dim);
+    }
+
+    /* Hero Captured Frame Preview (Reserved JPEG frame) */
+    .hero-frame-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .recorded-preview-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #090d12;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Spatial Canvas Reticle Simulation (Self-contained vector) */
+    .preview-vector-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.35;
+      background-image: 
+        linear-gradient(to right, #1f2a36 1px, transparent 1px),
+        linear-gradient(to bottom, #1f2a36 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .preview-retained-canvas {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .spatial-mesh-icon {
+      color: var(--color-primary);
+      opacity: 0.85;
+    }
+
+    .stage-notice-primary {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--color-text-primary);
+    }
+
+    .stage-notice-sub {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      max-width: 240px;
+    }
+
+    /* Availability Indicators Overlay */
+    .availability-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .indicator-cluster {
+      display: flex;
+      gap: 5px;
+    }
+
+    .badge-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 6px;
+      background-color: rgba(10, 15, 21, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .badge-indicator.avail-yes {
+      border-color: rgba(117, 224, 206, 0.4);
+      color: var(--color-primary);
+    }
+
+    .badge-indicator.avail-warning {
+      border-color: rgba(245, 166, 35, 0.4);
+      color: var(--color-warning);
+    }
+
+    /* Scrubber Controls */
+    .scrubber-module {
+      background-color: var(--color-surface-container);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    .scrubber-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .scrubber-slider {
+      width: 100%;
+      height: 28px;
+      accent-color: var(--color-primary);
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .scrubber-markers {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Right Pane / Observation Summary, Timing, Diagnostics */
+    .workspace-pane-right {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background-color: var(--color-surface);
+    }
+
+    .pane-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Observation Summary Cards Grid */
+    .binding-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .slot-card {
+      background-color: var(--color-surface-container);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      position: relative;
+    }
+
+    .slot-card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .slot-card-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .slot-card-status {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    .placeholder-dash {
+      color: var(--color-text-muted);
+      font-weight: 400;
+    }
+
+    /* Timing & Clock Disclosure */
+    .disclosure-box {
+      background-color: var(--color-surface-container);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+
+    .disclosure-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border-subtle);
+      font-size: 12px;
+    }
+
+    .disclosure-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .disclosure-key {
+      color: var(--color-text-secondary);
+    }
+
+    .disclosure-val {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--color-text-primary);
+      background-color: var(--color-surface-dim);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .disclosure-val.warning-state {
+      color: var(--color-warning);
+      border-color: rgba(245, 166, 35, 0.3);
+      background-color: var(--color-warning-dim);
+    }
+
+    /* Diagnostic Warnings & Session Details */
+    .diagnostic-panel {
+      background-color: var(--color-surface-dim);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+
+    .diagnostic-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .diagnostic-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .diag-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .diag-icon.warn {
+      color: var(--color-warning);
+    }
+
+    .diag-icon.info {
+      color: var(--color-primary);
+    }
+
+    /* State Simulation Switcher (Tabs for state demonstration) */
+    .state-switch-container {
+      background-color: var(--color-surface-container-high);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      margin-top: 4px;
+    }
+
+    .state-switch-header {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .state-switch-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .state-pill {
+      background: var(--color-surface-dim);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      font-size: 11px;
+      padding: 8px 4px;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+    }
+
+    .state-pill.active {
+      background-color: var(--color-primary-dim);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .template-banner {
+      display: none;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .template-banner.visible {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .template-interrupted {
+      background-color: var(--color-warning-dim);
+      border: 1px solid rgba(245, 166, 35, 0.35);
+      color: #f7b955;
+    }
+
+    .template-nodepth {
+      background-color: rgba(98, 113, 130, 0.15);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+    }
+
+    .template-missingasset {
+      background-color: var(--color-danger-dim);
+      border: 1px solid rgba(248, 81, 73, 0.35);
+      color: #ff7b72;
+    }
+
+    /* Actions Panel / Touch Targets >= 48px */
+    .review-actions-module {
+      border-top: 1px solid var(--color-border);
+      background-color: var(--color-surface-dim);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .btn-primary-build {
+      background-color: var(--color-primary);
+      color: #06110f;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-stack);
+      font-size: 15px;
+      font-weight: 700;
+      min-height: var(--touch-min);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background-color 0.15s, transform 0.05s;
+      width: 100%;
+    }
+
+    .btn-primary-build:active {
+      transform: scale(0.99);
+      background-color: var(--color-primary-hover);
+    }
+
+    .secondary-action-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .btn-secondary {
+      background-color: var(--color-surface-container);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-stack);
+      font-size: 12px;
+      font-weight: 600;
+      min-height: var(--touch-min);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      text-align: center;
+      padding: 6px 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-secondary:hover, .btn-secondary:focus-visible {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background-color: var(--color-surface-container-high);
+      outline: none;
+    }
+
+    .action-sub-hint {
+      font-size: 9px;
+      color: var(--color-text-muted);
+      font-weight: 400;
+    }
+
+    /* Modal / Feedback Toast overlay for actions */
+    .interaction-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: var(--color-surface-container-highest);
+      border: 1px solid var(--color-primary);
+      color: var(--color-text-primary);
+      font-size: 12px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+
+    .interaction-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Root Recruiser Mobile Spatial Workspace Viewport -->
+  <main class="recruiser-viewport" id="CaptureReviewScreen">
+
+    <!-- Header Saved Capture with back library -->
+    <header class="screen-header" role="banner">
+      <div class="header-nav-group">
+        <button class="icon-btn" aria-label="Return to capture library" data-action="back-library" onclick="triggerToast('Navigating to Library...')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <div class="title-area">
+          <span class="header-tagline">Recruiser Spatial Core</span>
+          <div class="header-title-badge">
+            <h1 style="font-size: 15px; font-weight: 700;">Saved capture</h1>
+            <span class="badge-demo">demo only</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="badge-live-tag">
+        <span class="pulse-dot"></span>
+        <span>Local Device</span>
+      </div>
+    </header>
+
+    <!-- Responsive Two-Pane Layout Container -->
+    <div class="screen-workspace">
+
+      <!-- LEFT PANE: Vignette Title, Hero Saved-Image Placeholder Scrubber -->
+      <section class="workspace-pane-left" aria-label="Frame preview and capture attributes">
+        
+        <!-- Editable Vignette Title -->
+        <div class="vignette-card">
+          <div class="vignette-label-row">
+            <span class="section-micro-label">Vignette Title</span>
+            <span class="section-micro-label" style="color: var(--color-primary);">Editable Sample</span>
+          </div>
+          <div class="editable-input-wrap">
+            <input 
+              type="text" 
+              class="vignette-input" 
+              id="vignetteTitleInput" 
+              value="Living room / Bookshelf corner" 
+              aria-label="Vignette title" 
+              placeholder="Enter capture vignette title"
+            />
+          </div>
+
+          <!-- Tags & Add Tag Section -->
+          <div class="tags-container" id="tagsList">
+            <span class="tag-chip">Interior</span>
+            <span class="tag-chip">Bookshelf</span>
+            <span class="tag-chip">Diffused Light</span>
+            <button class="tag-add-btn" type="button" onclick="promptAddTag()" aria-label="Add new tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Add tag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Saved-Image Stage (Reserved for actual retained JPEG) -->
+        <div class="hero-frame-section">
+          <div class="recorded-preview-stage" id="RecordedFramePreview" role="img" aria-label="Recorded frame preview area reserved for actual retained JPEG">
+            
+            <div class="preview-vector-grid"></div>
+
+            <!-- Availability Indicators Overlay -->
+            <div class="availability-overlay">
+              <div class="indicator-cluster">
+                <span class="badge-indicator avail-yes" title="Camera sensor data present">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                  CAM: Ready
+                </span>
+                <span class="badge-indicator avail-yes" id="depthAvailBadge" title="Depth sensing status">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                  DEPTH: 60Hz
+                </span>
+              </div>
+              <div class="indicator-cluster">
+                <span class="badge-indicator avail-yes" title="6DOF Pose estimation valid">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  POSE: 6DoF
+                </span>
+              </div>
+            </div>
+
+            <!-- Reserved JPEG Placeholder graphic (Zero external images/stock photos) -->
+            <div class="preview-retained-canvas">
+              <svg class="spatial-mesh-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+                <line x1="9" y1="9" x2="15" y2="15" stroke-dasharray="2 2"></line>
+              </svg>
+              <div class="stage-notice-primary">RESERVED RETAINED JPEG FRAME</div>
+              <div class="stage-notice-sub">Displaying indexed buffer frame #<span id="frameNumberDisplay">0142</span> &bull; Zero external stock</div>
+              <span class="badge-demo" style="margin-top: 4px;">preview placeholder (demo only)</span>
+            </div>
+          </div>
+
+          <!-- Frame Scrubber & Availability -->
+          <div class="scrubber-module">
+            <div class="scrubber-meta-row">
+              <span>Frame index: <strong id="scrubberCurrentFrame" style="color: var(--color-primary);">142</strong> / 840</span>
+              <span>Timestamp: <strong id="scrubberCurrentTime" style="color: var(--color-text-primary);">00:04.733s</strong></span>
+            </div>
+            <input 
+              type="range" 
+              class="scrubber-slider" 
+              id="frameScrubberRange" 
+              min="1" 
+              max="840" 
+              value="142" 
+              aria-label="Capture frame scrubber" 
+              oninput="updateFrameScrubber(this.value)"
+            />
+            <div class="scrubber-markers">
+              <span>0s (Start)</span>
+              <span>Pose Locked</span>
+              <span>28s (End)</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT PANE: Observation Summary Slots, Timing Disclosures, States, Actions -->
+      <section class="workspace-pane-right" aria-label="Session telemetry and reconstruction controls">
+        
+        <!-- ObservationSummary: Actual-binding slots with unavailable values represented by -- -->
+        <div id="ObservationSummary">
+          <div class="pane-section-header">
+            <h2 class="section-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              Observation Summary
+            </h2>
+            <span class="section-micro-label">Retained Bindings</span>
+          </div>
+
+          <div class="binding-slots-grid">
+            <!-- Slot: Frames -->
+            <div class="slot-card">
+              <div class="slot-card-label">Frames</div>
+              <div class="slot-card-value">
+                <span id="slotValFrames">840</span>
+                <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted);">retained</span>
+              </div>
+              <div class="slot-card-status">Indexed 30 fps</div>
+            </div>
+
+            <!-- Slot: IMU Samples -->
+            <div class="slot-card">
+              <div class="slot-card-label">IMU Samples</div>
+              <div class="slot-card-value">
+                <span id="slotValIMU">5,040</span>
+                <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted);">sync'd</span>
+              </div>
+              <div class="slot-card-status">200 Hz Gyro/Accel</div>
+            </div>
+
+            <!-- Slot: Depth Maps (unavailable until loaded slot demonstrated) -->
+            <div class="slot-card">
+              <div class="slot-card-label">Depth Maps</div>
+              <div class="slot-card-value" id="slotValDepth">
+                <span>840</span>
+                <span style="font-size: 11px; font-weight: normal; color: var(--color-primary);">LiDAR</span>
+              </div>
+              <div class="slot-card-status" id="slotStatusDepth">Confidence filtered</div>
+            </div>
+
+            <!-- Slot: Calibrations (Demonstrating explicit -- placeholder when deferred) -->
+            <div class="slot-card">
+              <div class="slot-card-label">Calibrations</div>
+              <div class="slot-card-value" id="slotValCalib">
+                <span class="placeholder-dash">--</span>
+              </div>
+              <div class="slot-card-status">Unavailable until loaded</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TimingDisclosure: Explicit clock alignment Unknown (not fabricated GPS) -->
+        <div class="disclosure-box" id="TimingDisclosure">
+          <div class="pane-section-header" style="margin-bottom: 8px;">
+            <h3 class="section-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Timing & Spatial Disclosures
+            </h3>
+            <span class="section-micro-label">Deterministic</span>
+          </div>
+
+          <div class="disclosure-row">
+            <span class="disclosure-key">Monotonic Device Clock</span>
+            <span class="disclosure-val">BOOT_REL +1492.308s</span>
+          </div>
+
+          <div class="disclosure-row">
+            <span class="disclosure-key">Hardware Sensor Sync</span>
+            <span class="disclosure-val">&plusmn;0.12 ms (HW Trigger)</span>
+          </div>
+
+          <div class="disclosure-row">
+            <span class="disclosure-key">GPS / Ephemeris Alignment</span>
+            <span class="disclosure-val warning-state" title="Explicit non-fabrication of absolute coordinates">Unknown (Not fabricated)</span>
+          </div>
+
+          <div class="disclosure-row">
+            <span class="disclosure-key">Coordinate Origin Policy</span>
+            <span class="disclosure-val">Independent scan origin</span>
+          </div>
+        </div>
+
+        <!-- Diagnostic Tracking & Warnings Section -->
+        <div class="diagnostic-panel">
+          <div class="pane-section-header" style="margin-bottom: 8px; border-bottom: none;">
+            <span class="section-micro-label">Session Details &amp; Telemetry</span>
+            <span style="font-size: 10px; color: var(--color-text-muted);">Integrity Check: OK</span>
+          </div>
+
+          <div class="diagnostic-item">
+            <svg class="diag-icon warn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+              <strong>Tracking Gap Detected:</strong> 1 minor loop closure jitter at 00:18.2 (14mm drift compensated).
+            </div>
+          </div>
+
+          <div class="diagnostic-item">
+            <svg class="diag-icon info" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <div>
+              <strong>Independent scan origins remain separate:</strong> No synthetic world merging applied without user anchor confirmation.
+            </div>
+          </div>
+        </div>
+
+        <!-- State Simulation Sandbox (Interrupted capture / No usable depth / Missing asset errors) -->
+        <div class="state-switch-container">
+          <div class="state-switch-header">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            State Condition Switcher (Demo Verification)
+          </div>
+          
+          <div class="state-switch-tabs">
+            <button class="state-pill active" id="pillNominal" onclick="setStateTemplate('nominal')">Nominal Ready</button>
+            <button class="state-pill" id="pillInterrupted" onclick="setStateTemplate('interrupted')">Interrupted</button>
+            <button class="state-pill" id="pillNoDepth" onclick="setStateTemplate('nodepth')">No Depth</button>
+          </div>
+          <div style="margin-top: 6px;">
+            <button class="state-pill" id="pillMissing" style="width: 100%;" onclick="setStateTemplate('missing')">Missing Asset Error</button>
+          </div>
+
+          <!-- Banner template for interrupted capture -->
+          <div class="template-banner template-interrupted" id="bannerInterrupted">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="diag-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="10" y1="15" x2="10" y2="9"></line>
+              <line x1="14" y1="15" x2="14" y2="9"></line>
+            </svg>
+            <div>
+              <strong>Capture Interrupted:</strong> Scan session terminated unexpectedly by OS backgrounding. Retained frames saved cleanly up to frame #512.
+            </div>
+          </div>
+
+          <!-- Banner template for no usable depth -->
+          <div class="template-banner template-nodepth" id="bannerNoDepth">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="diag-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+            <div>
+              <strong>No usable depth stream:</strong> Device infrared was obstructed or unsupported. Retaining export and visual replay pipelines; 3D generation can switch to monocular NeRF / Gaussian splatting fallback.
+            </div>
+          </div>
+
+          <!-- Banner template for missing asset errors -->
+          <div class="template-banner template-missingasset" id="bannerMissing">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="diag-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div>
+              <strong>Missing Asset Error:</strong> Inode pointer for calibration matrix <code>calib_cam0.json</code> is unreadable or truncated. Re-export package or continue scanning.
+            </div>
+          </div>
+        </div>
+
+        <!-- CaptureReviewActions: 48px Touch Targets, Explicit Primary and Secondaries -->
+        <div class="review-actions-module" id="CaptureReviewActions">
+          <!-- Primary Action: Build 3D on this device -->
+          <button 
+            class="btn-primary-build" 
+            id="btnBuildScene"
+            data-action="build-scene" 
+            onclick="triggerToast('Initiating local on-device 3D reconstruction...')"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span>Build 3D on this device</span>
+          </button>
+
+          <!-- Secondary Actions -->
+          <div class="secondary-action-grid">
+            <!-- Replay original -->
+            <button 
+              class="btn-secondary" 
+              data-action="replay-session" 
+              onclick="triggerToast('Native replay active &bull; Original buffer immutable')"
+              title="Native replay must not alter originals"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Replay original</span>
+              <span class="action-sub-hint">Read-only</span>
+            </button>
+
+            <!-- Continue scanning -->
+            <button 
+              class="btn-secondary" 
+              data-action="continue-capture" 
+              onclick="triggerToast('Resuming spatial capture in current session...')"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              <span>Continue scan</span>
+              <span class="action-sub-hint">Append frames</span>
+            </button>
+
+            <!-- Export capture package -->
+            <button 
+              class="btn-secondary" 
+              data-action="export-session" 
+              onclick="triggerToast('Exporting complete Recruiser session tarball...')"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Export package</span>
+              <span class="action-sub-hint">Portable archive</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- Feedback Toast for Native Interaction Feedback -->
+    <div class="interaction-toast" id="interactionToast" role="status" aria-live="polite">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span id="toastMessage">Action recorded</span>
+    </div>
+
+  </main>
+
+  <script>
+    // Frame scrubber interactive feedback
+    function updateFrameScrubber(val) {
+      const padded = String(val).padStart(4, '0');
+      document.getElementById('frameNumberDisplay').innerText = padded;
+      document.getElementById('scrubberCurrentFrame').innerText = val;
+      
+      const seconds = (val / 30).toFixed(3);
+      const mins = Math.floor(seconds / 60);
+      const remSecs = (seconds % 60).toFixed(3).padStart(6, '0');
+      document.getElementById('scrubberCurrentTime').innerText = '0' + mins + ':' + remSecs + 's';
+    }
+
+    // Dynamic Tag Addition (client-side demo)
+    function promptAddTag() {
+      const tagName = prompt('Enter a new label tag:', 'Living Space');
+      if (tagName && tagName.trim().length > 0) {
+        const tag = document.createElement('span');
+        tag.className = 'tag-chip';
+        tag.innerText = tagName.trim();
+        const container = document.getElementById('tagsList');
+        container.insertBefore(tag, container.lastElementChild);
+        triggerToast('Tag "' + tagName.trim() + '" added');
+      }
+    }
+
+    // Interactive Toast Notification
+    let toastTimeout;
+    function triggerToast(msg) {
+      const toast = document.getElementById('interactionToast');
+      const msgElem = document.getElementById('toastMessage');
+      msgElem.innerHTML = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2400);
+    }
+
+    // State Template Switcher implementation
+    function setStateTemplate(stateKey) {
+      // Clear tab classes
+      document.querySelectorAll('.state-pill').forEach(el => el.classList.remove('active'));
+      
+      // Hide all banners
+      document.getElementById('bannerInterrupted').classList.remove('visible');
+      document.getElementById('bannerNoDepth').classList.remove('visible');
+      document.getElementById('bannerMissing').classList.remove('visible');
+
+      const buildBtn = document.getElementById('btnBuildScene');
+      const depthVal = document.getElementById('slotValDepth');
+      const depthStatus = document.getElementById('slotStatusDepth');
+      const depthBadge = document.getElementById('depthAvailBadge');
+
+      if (stateKey === 'nominal') {
+        document.getElementById('pillNominal').classList.add('active');
+        buildBtn.disabled = false;
+        buildBtn.style.opacity = '1';
+        buildBtn.style.pointerEvents = 'auto';
+        depthVal.innerHTML = '<span>840</span> <span style="font-size: 11px; font-weight: normal; color: var(--color-primary);">LiDAR</span>';
+        depthStatus.innerText = 'Confidence filtered';
+        depthBadge.className = 'badge-indicator avail-yes';
+        depthBadge.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> DEPTH: 60Hz';
+        triggerToast('State reset: Nominal ready configuration');
+      } 
+      else if (stateKey === 'interrupted') {
+        document.getElementById('pillInterrupted').classList.add('active');
+        document.getElementById('bannerInterrupted').classList.add('visible');
+        buildBtn.disabled = false;
+        buildBtn.style.opacity = '1';
+        triggerToast('Interrupted state: 512 frames safe in store');
+      } 
+      else if (stateKey === 'nodepth') {
+        document.getElementById('pillNoDepth').classList.add('active');
+        document.getElementById('bannerNoDepth').classList.add('visible');
+        depthVal.innerHTML = '<span class="placeholder-dash">--</span> <span style="font-size: 10px; color: var(--color-warning);">RGB-Only</span>';
+        depthStatus.innerText = 'Passive Photometry Fallback';
+        depthBadge.className = 'badge-indicator avail-warning';
+        depthBadge.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg> DEPTH: None';
+        buildBtn.disabled = false;
+        triggerToast('No depth stream: Retaining export & replay pipelines');
+      } 
+      else if (stateKey === 'missing') {
+        document.getElementById('pillMissing').classList.add('active');
+        document.getElementById('bannerMissing').classList.add('visible');
+        buildBtn.disabled = true;
+        buildBtn.style.opacity = '0.5';
+        buildBtn.style.pointerEvents = 'none';
+        triggerToast('Missing asset: Build 3D blocked pending calibration file');
+      }
+    }
+  </script>
+</body>
+</html>
