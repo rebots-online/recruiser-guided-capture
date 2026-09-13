@@ -69,6 +69,8 @@ Primary evidence checked for this amendment: [ARCore recording and playback](htt
 
 ## Android capture implementation packets — 2026-09-13
 
+Delivery rule (Robin, 2026-09-13): after **each** checklist item is completed and its declared verification has been observed, create its scoped commit, push it, and verify that commit reached the remote before starting the next item. Do not batch completed items into a final push. In-progress design output is not completed implementation. Record commit/hash and verification evidence with the item; never commit private phone captures or synthetic runtime records.
+
 Authority: Robin's request to have the swarm build the Android-first, capture-first scope above. These packets operationalize that instruction; historical browser-only packets do not constrain this work. CodeGraph verified 109 files/1,789 nodes/7,289 edges; `codegraph node CHECKLIST.md` reports no symbol because Markdown contracts are not parsed, permitting this named contract read. Root integrates and publishes shared work; workers edit only their owned paths and never revert concurrent edits. This section is the executable contract for this cohort.
 
 ### Shared package and numeric contract
@@ -143,7 +145,7 @@ New-file targets below begin at line 1; signatures and wire fields here are auth
 
   Verify: existing project TypeScript/test/build commands and focused package tests including malformed manifest, zip-slip/duplicate/size limits, hash failure, missing calibration, unsafe timestamp, round-trip original observations, explicit missing capabilities and derived PLY selection. Accept: normal web workflow still works, import/review/reload retain the full package, and empty workspace distinguishes surroundings capture from rendered-view recording. Browser/device interaction remains separately reported if not run.
 
-- [X] **N4 — Android build, real Vulkan kernel, integration and delivery** — @root-integrator; build and device-kernel verification complete, delivery evidence below
+- [X] ✅ **N4 — Android build, real Vulkan kernel, integration and delivery** — @root-integrator; source delivered in `f2a0e7d`, remote master verified
 
   Files-you-may-touch: `android/{settings.gradle.kts,build.gradle.kts,gradle.properties,gradlew,gradlew.bat,gradle/wrapper/*,version.properties}`, `android/{app,core}/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`, `android/app/src/main/res/values/*`, VulkanDepthUnprojector above, `android/app/src/main/cpp/{CMakeLists.txt,unproject.comp,vulkan_unproject.cpp}`, root `.gitignore`, `scripts/build-android.sh`, `DOCS/android-capture.md` and this checklist integration evidence. Root may reconcile cross-module compilation errors inside worker-owned files after notifying the owner; preserve their ongoing edits.
 
