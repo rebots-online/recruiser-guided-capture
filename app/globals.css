@@ -6,6 +6,13 @@
   scrollbar-width: thin;
 }
 
+/* Native observation packages use the shared viewer's existing controls. */
+.capture-package-dialog{width:min(760px,calc(100vw - 28px));max-width:760px!important;max-height:90dvh;overflow-y:auto}
+.capture-native-intro{display:flex;gap:16px;align-items:flex-start;color:var(--foreground);line-height:1.6}.capture-native-intro>svg{color:var(--primary);margin-top:4px}
+.capture-package-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.capture-package-counts>div{padding:12px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--secondary);min-width:0}.capture-package-counts strong,.capture-package-counts span{display:block;overflow-wrap:anywhere}.capture-package-counts strong{font-size:1.3rem}.capture-package-counts span{font-size:.8125rem;color:var(--muted-foreground)}
+.capture-package-section{border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:12px;min-width:0}.capture-package-section h3{display:flex;align-items:center;gap:8px;font-weight:600}.capture-package-section .field{margin:0}.capture-package-section select{width:100%;padding:10px;background:var(--background);border:1px solid var(--border);border-radius:var(--radius)}.capture-package-metadata{display:flex;gap:8px 20px;flex-wrap:wrap;font-size:.8125rem;overflow-wrap:anywhere}.capture-package-video{display:block;width:100%;max-height:320px;background:#050a0d}.capture-package-events{max-height:260px;overflow-y:auto;overflow-wrap:anywhere}.capture-package-events p{padding:10px 0;border-bottom:1px solid var(--border)}.capture-package-table{overflow:auto;max-height:240px}.capture-package-table table{border-collapse:collapse;font-size:.75rem;white-space:nowrap}.capture-package-table th,.capture-package-table td{padding:8px;text-align:left;border-bottom:1px solid var(--border)}.capture-package-section summary{cursor:pointer;font-size:.875rem;color:var(--primary)}.scene-empty .empty-open-scene{justify-content:center;margin:12px auto 0}.package-source-card .thumb-fallback{background:color-mix(in srgb,var(--primary) 9%,var(--card));color:var(--primary)}
+@media(max-width:650px){.capture-package-counts{grid-template-columns:repeat(2,minmax(0,1fr))}.capture-native-intro{gap:10px}.tray-selection{flex-wrap:wrap}.capture-package-dialog{padding:20px}}
+
 @utility scrollbar-none {
   scrollbar-width: none;
 

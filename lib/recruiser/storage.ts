@@ -1,7 +1,7 @@
 export type Vec3=[number,number,number];
 export type Quat=[number,number,number,number];
 export type Pose={position:Vec3;quaternion:Quat};
-export type Source={id:string;sceneId:string;sha256:string;name:string;byteLength:number;mime:string;importedAt:string;captureTime:string|null;projection:'perspective'|'equirectangular'|'dual-fisheye'|'unknown';lensProfile:string|null;blobKey:string;vignetteId:string;previewBlobKey?:string;previewName?:string;previewMime?:string};
+export type Source={id:string;sceneId:string;sha256:string;name:string;byteLength:number;mime:string;importedAt:string;captureTime:string|null;projection:'perspective'|'equirectangular'|'dual-fisheye'|'unknown';lensProfile:string|null;blobKey:string;vignetteId:string;previewBlobKey?:string;previewName?:string;previewMime?:string;capturePackage?:{sessionId:string;state:'finalized'|'interrupted';device:string;frameCount:number;depthCount:number}};
 export type Layer={id:string;sourceIds:string[];name:string;kind:'mesh'|'points'|'gaussian';blobKey:string;pose:Pose;scale:number;visible:boolean;provenance:Record<string,unknown>;alignment:'unregistered'|'manual'|'registered'};
 export type Revision={id:string;sceneId:string;parentRevisionId:string|null;worldFrameId:string;unitStatus:'metres'|'unknown';createdAt:string;layers:Layer[];vignetteIds:string[];removedSourceIds?:string[];title:string};
 export type SavedJob={id:string;sceneId:string;[key:string]:unknown};

@@ -107,7 +107,7 @@ New-file targets below begin at line 1; signatures and wire fields here are auth
 | capture-package | `lib/recruiser/capture-package.ts:1` | TS types plus `readCapturePackage(file:File):Promise<CapturePackage>`; validated archive and parsed records; `{manifest,frames,imu,events,quality,assets:Map<string,Blob>,original:File}`. |
 | CapturePackageReview | `components/recruiser/CapturePackageReview.tsx:1` | Props `{capture:CapturePackage,onClose:()=>void,onOpenScene:(file:File)=>void}`; camera-free record review, media replay and derived scene opening. |
 
-- [ ] **N1 — Native Android capture, package, replay and local scene workflow** — @native-worker
+- [X] **N1 — Native Android capture, package, replay and local scene workflow** — @native-worker; implementation and compiler verified, full operator scan protocol still open
 
   Files-you-may-touch: the five host Kotlin files above except VulkanDepthUnprojector; same-directory helpers when needed to keep files below 500 lines. Read-only: shared core APIs, root Android build configuration and ARCore official documentation. Use native Activity/GLSurfaceView and built-in widgets; no AndroidX or Tauri host. Android versions are supplied in N4. Implementation is authorized by this packet and Robin's swarm request.
 
@@ -119,7 +119,7 @@ New-file targets below begin at line 1; signatures and wire fields here are auth
 
   Verify: N4 Android compile/package check and N2 behavioral suite; add host serialization tests where pure-JVM seams permit. Accept: Android source compiles and workflows are implemented; archive round-trip retains all explicit observations and synchronization uncertainty. Operator verification remains separate: actual Fold5 permission/ARCore install, rear preview, timestamps, thermal load, interruption, capture/replay, local reconstruction and revisit, folded/unfolded controls. A compiler result does not close these device observations.
 
-- [ ] **N2 — Platform-free guidance, bounded depth fusion and durable checkpointing** — @reconstruction-worker
+- [X] ✅ **N2 — Platform-free guidance, bounded depth fusion and durable checkpointing** — @reconstruction-worker; 23 behavioral tests passed
 
   Files-you-may-touch: the three core Kotlin files above plus tests under `android/core/src/test/kotlin/mba/robin/recruiser/core/`. Helpers remain inside those owned trees. No Android dependencies; Gradle configuration belongs to root.
 
@@ -133,7 +133,7 @@ New-file targets below begin at line 1; signatures and wire fields here are auth
 
   Verify: `cd android && ./gradlew :core:test`. Accept: behavioral tests verify calibrated-plane geometry, rotated/translated poses, unsigned confidence and invalid samples, RGB association, voxel bounds, distinct-origin rejection, duplicate frames, checkpoint interruption/resume equivalence, corrupted/mismatched checkpoint rejection, flat/blurred/clipped imagery and tracking loss/unknown overlap. Test synthetic data only; report measured results, no field-quality claims.
 
-- [ ] **N3 — Capture-first web controls and portable observation-package review** — @web-worker
+- [X] ✅ **N3 — Capture-first web controls and portable observation-package review** — @web-worker; tested functional baseline, final visual UI superseded by Stitch request
 
   Files-you-may-touch: capture-package and CapturePackageReview above, `components/recruiser/Workspace.tsx`, `components/recruiser/SceneViewport.tsx`, `components/recruiser/SourceQueue.tsx`, `app/globals.css`, `lib/recruiser/storage.ts`, tests under `tests/recruiser/`. Read existing named integration points through CodeGraph; do not change worker API, inferred base-scene requirements or historical source bytes. Existing archive library may be reused; package/schema tests are required because this boundary admits external bytes.
 
@@ -143,7 +143,7 @@ New-file targets below begin at line 1; signatures and wire fields here are auth
 
   Verify: existing project TypeScript/test/build commands and focused package tests including malformed manifest, zip-slip/duplicate/size limits, hash failure, missing calibration, unsafe timestamp, round-trip original observations, explicit missing capabilities and derived PLY selection. Accept: normal web workflow still works, import/review/reload retain the full package, and empty workspace distinguishes surroundings capture from rendered-view recording. Browser/device interaction remains separately reported if not run.
 
-- [ ] **N4 — Android build, real Vulkan kernel, integration and delivery** — @root-integrator
+- [X] **N4 — Android build, real Vulkan kernel, integration and delivery** — @root-integrator; build and device-kernel verification complete, delivery evidence below
 
   Files-you-may-touch: `android/{settings.gradle.kts,build.gradle.kts,gradle.properties,gradlew,gradlew.bat,gradle/wrapper/*,version.properties}`, `android/{app,core}/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`, `android/app/src/main/res/values/*`, VulkanDepthUnprojector above, `android/app/src/main/cpp/{CMakeLists.txt,unproject.comp,vulkan_unproject.cpp}`, root `.gitignore`, `scripts/build-android.sh`, `DOCS/android-capture.md` and this checklist integration evidence. Root may reconcile cross-module compilation errors inside worker-owned files after notifying the owner; preserve their ongoing edits.
 
@@ -152,6 +152,15 @@ New-file targets below begin at line 1; signatures and wire fields here are auth
   Implement a real Vulkan compute unprojection kernel with bounded host-visible input/output buffers, pipeline/queue lifecycle and finite per-pixel dispatch. JNI library `recruiser_depth`; `unprojectNative(depth:ShortArray,confidence:ByteArray,width:Int,height:Int,fx:Float,fy:Float,cx:Float,cy:Float,minConfidence:Int):FloatArray`. Kotlin adapter implements DepthUnprojector; missing/failed Vulkan switches to verified CPU implementation and exposes actual backend. Vulkan computes the identical camera XYZ validity/sign convention; fusion remains the implemented Kotlin algorithm. No capability or speedup claim from API presence alone. Compile GLSL to SPIR-V as a real build step.
 
   Verify: `cd android && ./gradlew :core:test :app:assembleDebug`, web regression/type/build commands, Vulkan CPU-reference parity where an actual driver is available, APK presence/hash. Accept: integrated APK and web build succeed, native kernel is compiled and fallback is explicit, source/package schemas agree, observed gaps are documented. Operator Fold5 installation/scanning, sustained thermal behavior and device GPU parity are distinct from host verification. Root publishes a scoped commit and verifies remote delivery; no automatic public-site deployment or signing-key replacement is authorized by this packet.
+
+### Cohort evidence and current UI direction
+
+- Native `bash scripts/build-android.sh --console=plain` succeeded for version **0.6.19616**; 23 core tests plus nine native recovery/serialization tests are green. APK `dist/android/recruiser-capture-0.6.19616-arm64-debug.apk`, SHA-256 `88663a91a5afb6db3ed16f9b5a99e80ae5e6089ed9d1fb3a49b4f1a30bc42488`. Development signing only. Prior 0.5.19615 installed and launched on the Fold5; the phone disconnected during actual scanning, so no claim that 0.6 is installed.
+- Native-generated ZIP fixture imported successfully through the actual browser file chooser. Browser review showed retained JPEG, one frame, two IMU observations, packed depth/confidence and unknown IMU mapping. Synthetic fixture, not a room scan. A separate synthetic PLY package opened as a rendered scene; original package association and observations survived browser reload.
+- TypeScript and production web build passed. Capture surroundings leads the empty workspace; Record fly-through appears with a loaded rendered layer. The optional service panel does not submit capture-session packages. Twenty focused package tests cover adversarial ZIPs, hashing, records, media bounds and IndexedDB persistence, in addition to the existing 17 regressions.
+- Real Vulkan parity passed on both NVIDIA RTX 4090 Laptop GPU and Fold5 Adreno 740: 1,073 samples, two dispatches, 0.00001-metre tolerance, invalid dimensions rejected. This is not throughput, thermal, or scan-quality validation.
+- Critical review fixes: camera release precedes background journal draining, guidance uses actual sampled imagery, clock resets interrupt explicitly, incomplete JSONL tails recover safely, failed recording starts are reconciled, and checkpoints count skipped records. Raw depth uses texture-camera intrinsics scaled to depth resolution; JPEGs retain independent CPU-image intrinsics. AndroidX build flag is needed only for ARCore's transitive annotation artifact; the functional native UI uses platform widgets, not AndroidX UI.
+- Robin's subsequent instruction requires **actual Google Stitch UI exports matched to `recruiser.html`, with exported components connected to architecture**. The functional native/web UI above is a tested baseline, not the final visual deliverable. No further hand-built visual UI work proceeds outside that design pass. Named vignette/tag selection is not implemented in 0.6.19616; the new screen design must distinguish user grouping from immutable ARCore world frames.
 
 ## Decision to approve
 

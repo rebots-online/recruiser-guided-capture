@@ -44,3 +44,9 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/android/.gradle/
+/android/.kotlin/
+/android/**/build/
+/android/**/.cxx/
+/android/local.properties
+*.bak-20260913-*
