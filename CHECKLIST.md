@@ -2,6 +2,65 @@
 
 Architecture v0.1 · 2026-09-09 · APPROVED baseline. The guided-capture/audio proposal dated 2026-09-13 below was signed off for implementation by Robin on 2026-09-13 17:14 EDT; see "Implementation authorization" at the end of this file.
 
+Current capture direction: Robin's subsequent **Capture now, reconstruct afterward** decision below supersedes the browser-only/no-guidance capture scope and defers audio. The older packets retain their history; they do not by themselves satisfy this revised milestone.
+
+## Capture now, reconstruct afterward — scope amendment, 2026-09-13
+
+Authority: Robin's current instruction in the viewfinder architecture conversation. First milestone: **a reliable, replayable capture session with useful lightweight guidance**. Preserve observations while walking; build the finished 3D world afterward. This section records the revised architecture direction and acceptance requirements, not completed implementation or a replacement set of executable native coder packets.
+
+### Milestone order and existing-contract reconciliation
+
+1. Capture and replay: live viewfinder, durable observations, synchronization, interruption recovery, local review and lightweight quality guidance. Neither a base scene nor a reconstruction worker is required to capture.
+2. On-device reconstruction: after capture, offer `Build 3D on this device` through an implemented, capability-checked processing path with durable checkpoints and resumable jobs. Optional acceleration elsewhere consumes the same capture package. Processing availability never determines whether observations can be saved. Until that milestone ships, keep capture/replay usable and report reconstruction availability honestly.
+3. Audio is independent and deferred: stereo verification, spatial rendering, upmix and generated Foley are outside milestone 1. Existing audio assets and contracts remain preserved. Capture/replay has no dependency on a microphone grant, audio model or audio service.
+
+The previous implementation authorization's scope item 1 and T11's prohibition on image-quality guidance are superseded for the revised milestone. Browser camera capture remains a useful limited fallback; a plain MediaRecorder recording does not satisfy the full synchronized observation package. T6/T7/T11 need corresponding native-provider, package and guidance contracts before they can be used to claim this milestone complete. T9 and the audio operations of T10 are deferred; thumbnail and format-conversion work remains separable. No previously written or verified implementation is erased by this amendment, and historical task markers are not evidence of acceptance of the revised scope.
+
+### Capture package requirements
+
+The package is versioned, self-describing and local. Its manifest identifies the session, provider/device/software versions, coordinate conventions, clock mappings, calibration epochs, segment identities, asset sizes and hashes. Export/import retains observations and their associations together; passing only video Files into the source tray must not discard sensor or calibration records. Derived keyframes, quality reports and later reconstructions reference the immutable original package.
+
+| Observation | Required retained information | Missing/invalid behavior |
+| --- | --- | --- |
+| Camera imagery | Actual recorded resolution/encoding, frame identity, source image timestamp, media presentation timestamp and segment reference; retain original media and sharp views useful for reconstruction | Dropped/missing images are explicit; derived frame selection does not silently replace the original recording |
+| Calibration | Intrinsics for the actual saved image, image dimensions, camera/lens identity, crop/zoom/rotation and available distortion model; validity interval and calibration reference on frames | Unknown values are marked unavailable, never inferred from requested resolution or field of view |
+| Tracked pose | Camera-to-world position/orientation, units, axis/handedness conventions, tracking state/failure reason, source timestamp and world-frame identity | Lost tracking yields invalid pose, never an identity pose; an origin reset starts a new world frame until a validated transform relates it |
+| IMU | Gyroscope and accelerometer samples with units, sensor axes, source timestamps, accuracy/status and mapping into the session timeline | Preserve gaps and timing uncertainty; do not integrate acceleration alone and call the result precise room geometry |
+| Depth | Available metric depth and confidence, their encoding/units, dimensions, timestamps, calibration and relation to the camera image | Unsupported, stale, invalid and low-confidence samples remain distinguishable; an RGB depth visualization is not reconstruction evidence |
+| Location | Optional GPS/location fix, accuracy, source/provider and timestamps mapped into the session timeline | Indoor absence or denied location permission never prevents capture; location supplies geographic context rather than precise indoor geometry |
+
+Use a monotonic session timeline and retain each stream's original clock domain. Record clock offset/drift estimates, units, uncertainty and discontinuities. Use a lossless integer representation for nanosecond values crossing JavaScript/JSON; do not round them through floating-point numbers. Arrival time of a callback or recording chunk is not exposure time. Associate samples with frames by source time and a declared tolerance; data outside the bound stays unaligned rather than silently attached to the nearest frame. A calibration/lens/crop change begins a new calibration epoch and, where needed for media validity, a new recording segment.
+
+Journal observations incrementally, preserve committed data on interruption and validate segment finalization. Pause/resume, backgrounding, storage exhaustion and process termination produce explicit gaps or interrupted states. A recovery result must distinguish playable video, readable sensor records and a synchronized replayable session. Retention takes priority over preview/analysis work; record any observation loss instead of hiding it.
+
+### Android recording and replay
+
+Use an Android ARCore provider for the full tracked capture route, with one owner of the camera. It requires a native Android host/bridge; adding browser permissions to the existing Sites page does not provide this route. The browser provider reports its actual available observations and remains eligible for later image-based reconstruction without claiming native tracking, calibration or IMU parity.
+
+Retain the ARCore recording MP4 as an original dataset. Explicitly preserve required poses, calibration and available metric depth/confidence as versioned custom tracks or companion records indexed by frame/time. The portable observation package must also expose the required IMU observations to the downstream reader; opaque sensor content inside an MP4 alone is insufficient proof of that contract. ARCore playback can be used to replay the dataset, but reconstructed/recomputed poses remain derived results and do not overwrite recorded poses.
+
+Select a supported CPU image camera configuration with reconstruction-useful resolution and record the actual result. ARCore's default recording is a 640×480 CPU image, not the high-resolution GPU viewfinder texture. Higher-resolution recording affects device workload, so delivered quality, timing and thermal behavior require device evidence. The built-in depth visualization is preview-only; store available metric depth/confidence explicitly. Custom data is not automatically recorded by ARCore.
+
+### Guidance during capture
+
+Run local checks on a bounded sample of frames, with their frame/time references retained in a derived quality report. The analysis queue drops stale analysis work before it delays observation retention. Guidance covers blur, exposure, tracking loss and estimated overlap with recent useful views. Report unavailable checks as unavailable; moving objects, low texture and lighting changes can make overlap estimates unreliable. Quality failures invite a slower sweep, steadier view, improved lighting or another pass while the user is still present.
+
+Available pose and coarse depth can support provisional observed/weak/unknown coverage. A detailed missing-surface map and final reconstruction-quality scoring are not milestone-1 requirements. Never mark unseen space complete, use a depth visualization as metric depth, or claim final splat resolution from a blur score. Stop world-anchored directions when tracking is lost; image-space quality guidance may continue independently. Persist the relevant quality findings so review can identify weak portions before the user leaves.
+
+### Capture-first interface
+
+With no rendered layers, the prominent action is `Capture surroundings`, opening the physical-camera viewfinder. `Record fly-through` is labelled in full and only available when a rendered scene exists. During capture expose Start, Pause/Resume and Finish with saved-state and quality feedback. Review offers replay, quality findings, Retake/Continue scanning and local retention without a file-picker round trip. A later reconstruction produces a derived candidate for review; it never replaces the captured observations.
+
+### Acceptance of the revised milestone
+
+Software verification must exercise package versioning, asset integrity and round-trip preservation; frame/calibration/pose/sensor associations; explicit missing capabilities; clock gaps and calibration/origin changes; interrupted recording recovery; and replay of saved observations without an active camera or reconstruction service. Test known quality failures and unobservable cases so missing evidence cannot be reported as a pass. No successful build alone establishes sensor synchronization or useful field guidance.
+
+Operator verification protocol: on the actual target phone, capture and replay a session containing sharp/blurred views, exposure changes, overlapping views, tracking loss, pause/resume and an interruption. Inspect actual saved image resolution, calibration and sensor timestamps, alignment error, optional depth/confidence and GPS availability. Confirm controls remain reachable through fold/rotation, retained observations survive recovery, and guidance arrives while correction is still possible without sacrificing recording. Measure processing latency, resource use and thermal behavior; no device rate, accuracy bound or field success is asserted by this document.
+
+The native host integration, exact package schemas and reader/writer interfaces, clock-alignment tolerances and calibrated guidance thresholds still require implementation contracts and device evidence. This amendment resolves the milestone and data requirements; it does not claim those implementation details were already architected or tested. The on-device reconstruction algorithm/checkpoint contract belongs to milestone 2, and audio remains outside both capture acceptance and its critical path.
+
+Primary evidence checked for this amendment: [ARCore recording and playback](https://developers.google.com/ar/develop/recording-and-playback) documents camera/IMU recording, CPU image selection and preview-only depth visualization. [Custom recording tracks](https://developers.google.com/ar/develop/java/recording-and-playback/custom-data-track) documents explicit application-owned recording and replay of custom frame data.
+
 ## Decision to approve
 
 Build a privately hosted Sites web/PWA workspace that opens GLB meshes, PLY meshes/point clouds/Gaussian splats and binary SPLAT assets in one 6DoF scene. Add ordinary and panoramic still/video capture batches, including original INSV/INSP from Insta360 Air, to a reconstruction queue grounded in an existing scene. A connected reconstruction worker returns candidate layers for review and acceptance. This release implements the viewer and complete worker-facing frontend; training a reconstruction model and implementing the native Insta360 decoder are outside this frontend release. Their absence must appear as a precise capability state, never simulated processing.
