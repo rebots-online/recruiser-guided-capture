@@ -1,5 +1,17 @@
 # Recruiser — Spatial Memory Cruiser
 
+## ACTIVE OVERRIDE — real-time effort paused, 2026-09-13
+
+Robin paused the real-time capture/coverage/Stitch expansion to conserve quota and requested a working post-processing POC/MVP plus an annotated handoff and Pieces check. **Do not resume UI1, UI2, COV1 or COV2 without renewed authorization.** All three workers were interrupted. Existing capture functionality and original observations are preserved; this is not a rollback or deletion. Audio and Insta360 Air remain deferred.
+
+Current scope: verify and repair only the existing capture/import → post-process → save/revisit path. Native depth reconstruction and the web service-facing import path are different capabilities; do not claim arbitrary-photo reconstruction or an operational external worker without evidence. See `DOCS/HANDOFF-capture-pause-2026-09-13.md` for the exact frontier, draft provenance, verified gates and remaining operator protocol.
+
+- ✅ **PAUSE1 — Preserve the stopped frontier** — @root. Files: this CHECKLIST, `DOCS/HANDOFF-capture-pause-2026-09-13.md`, `AGENTS.md`, `CLAUDE.md`. Do: record the current override, interrupted tasks, frozen commit, rejected/unbundled drafts, evidence and resume order; correct routing text that implies Stitch is already bundled. Verify: `git diff --check`; `test -s DOCS/HANDOFF-capture-pause-2026-09-13.md`. Accept: both commands exit 0 and the named handoff is present. Observed: both passed 2026-09-13. Commit and push this completed item separately.
+
+- [ ] **POC1 — Android 16 KB packaging repair** — @root. Architecture and operator protocol: handoff section "POC packaging amendment". Files-you-may-touch: `android/app/src/main/cpp/CMakeLists.txt`, `android/version.properties`, this CHECKLIST and the handoff. Read-only: `scripts/build-android.sh`, produced ELF/APK/test results. Do: add Android-only `target_link_options(recruiser_depth PRIVATE "-Wl,-z,max-page-size=16384" "-Wl,-z,common-page-size=16384")` after target creation. Keep NDK/ARCore versions and algorithms unchanged. Run the existing versioned build helper after the web build; retain originals and stage the produced APK. Verify: `bash scripts/build-android.sh --console=plain`; `readelf -lW android/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/librecruiser_depth.so`; `$ANDROID_HOME/build-tools/35.0.0/zipalign -c -P 16 -v 4 android/app/build/outputs/apk/debug/app-debug.apk`. Accept: build/test tasks succeed, every native depth LOAD segment has alignment 0x4000 or greater, and zipalign reports Verification successful. Device warning dismissal/reconstruction/reopen are operator observations, not checklist acceptance. Commit and push the completed repair separately.
+
+---
+
 Architecture v0.1 · 2026-09-09 · APPROVED baseline. The guided-capture/audio proposal dated 2026-09-13 below was signed off for implementation by Robin on 2026-09-13 17:14 EDT; see "Implementation authorization" at the end of this file.
 
 Current capture direction: Robin's subsequent **Capture now, reconstruct afterward** decision below supersedes the browser-only/no-guidance capture scope and defers audio. The older packets retain their history; they do not by themselves satisfy this revised milestone.
