@@ -26,5 +26,10 @@ else()
     enable_testing()
     add_test(NAME vulkan_unprojection_parity COMMAND recruiser_depth)
 endif()
+if(ANDROID)
+    target_link_options(recruiser_depth PRIVATE
+        "-Wl,-z,max-page-size=16384"
+        "-Wl,-z,common-page-size=16384")
+endif()
 target_include_directories(recruiser_depth PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_options(recruiser_depth PRIVATE -Wall -Wextra -Wno-missing-field-initializers -Werror=return-type)
