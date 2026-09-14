@@ -7,6 +7,8 @@ val releaseVersion = Properties().apply {
 val majorVersion = releaseVersion.getProperty("major").toInt()
 val minorVersion = releaseVersion.getProperty("minor").toInt()
 val stampVersion = releaseVersion.getProperty("build").toInt()
+fun signingValue(name: String): String = providers.environmentVariable(name).orNull
+    ?.takeIf { it.isNotBlank() } ?: error("Required release signing environment variable: $name")
 android {
     namespace = "mba.robin.recruiser"
     compileSdk = 35
@@ -28,8 +30,24 @@ android {
         cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" }
     }
     buildFeatures { buildConfig = true }
-    buildTypes { release { isMinifyEnabled = false } }
+    signingConfigs {
+        create("production") {
+            storeFile = file(signingValue("RECRUISER_KEYSTORE_PATH"))
+            storePassword = signingValue("RECRUISER_KEYSTORE_PASSWORD")
+            keyAlias = signingValue("RECRUISER_KEY_ALIAS")
+            keyPassword = signingValue("RECRUISER_KEY_PASSWORD")
+        }
+    }
+    buildTypes {
+        release {
+            isDebuggable = false
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("production")
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
+        }
+    }
 }
+androidComponents { beforeVariants(selector().withBuildType("debug")) { it.enable = false } }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {
     implementation(project(":core"))
