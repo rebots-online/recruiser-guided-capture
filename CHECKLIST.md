@@ -1,5 +1,11 @@
 # Recruiser — Spatial Memory Cruiser
 
+## GLM executor dispatch boundary
+
+Robin reports that the altered checklist sent GLM-5.3 / GLM-5.3 Flash into analysis and recommendations. Preserve the established task format: task ID, Files-you-may-touch, Do, Verify, Accept. A dispatched task is an instruction to implement its exact Do, run its exact Verify, compare the observed result with Accept and report changed files/results; it is not a request to review, redesign, propose alternatives or recommend next steps. Architectural decisions must already be settled before dispatch. If a required fact is missing, return a concise ESCALATION naming the task and exact missing fact, not an analysis essay or an invented implementation.
+
+**No new GLM task is released by this handoff.** The whole-build gap notes below belong to the architect/integrator, not the coder queue. UI1/UI2/COV1/COV2 remain paused. Root must explicitly release a ready task ID with its complete existing-format packet; do not dispatch the whole mixed-history checklist or ask a coder to choose work from it. Completion handback: task ID, files changed, verification command, observed acceptance, remaining exact gap if any. Root integrates and pushes each completed item before releasing the next.
+
 ## ACTIVE OVERRIDE — real-time effort paused, 2026-09-13
 
 **Whole-build requirements remain open:** production-signed tracked dist/ artifact sets; one canonical cross-platform version with immediate post-success MINOR consumption; automatic Windows-host MSI/MSIX routing; automatic EXE cross-compilation from supported environments; desktop reconstruction. REL1/REL2 only repair the Android leg and shared version readers. Do not equate them with the full pipeline/MVP. The current native Windows/desktop wiring and cross-platform orchestrator are absent; form self-contained packets from the existing documented recipes before dispatching GLM coders. Preserve the pending capture/UI work separately.
