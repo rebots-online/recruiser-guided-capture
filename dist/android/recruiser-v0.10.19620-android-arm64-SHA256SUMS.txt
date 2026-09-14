@@ -1,0 +1,3 @@
+9288a2ce4ab6c0a0d91ecc77d739dd8c2099879ed51591507fa4c97dce6ec945  dist/android/recruiser-v0.10.19620-android-arm64-release.apk
+25fa9a2dfd78a71c686edd444181af81b263b4f7859be4143992a76543324ec9  dist/android/recruiser-v0.10.19620-android-arm64-release.aab
+a147688b45f8d6cd99a06452e3b9af7ffbabbe730ebabb819095fc4b84256921  dist/android/recruiser-v0.10.19620-android-arm64-native-symbols.zip

@@ -1,12 +1,9 @@
-import java.util.Properties
-
 plugins { id("com.android.application"); kotlin("android") }
-val releaseVersion = Properties().apply {
-    rootProject.file("version.properties").inputStream().use { load(it) }
-}
-val majorVersion = releaseVersion.getProperty("major").toInt()
-val minorVersion = releaseVersion.getProperty("minor").toInt()
-val stampVersion = releaseVersion.getProperty("build").toInt()
+val releaseVersion = rootProject.file("../version.txt").readText().trim()
+require(releaseVersion.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]{5}"))) { "Invalid canonical version.txt" }
+val versionParts = releaseVersion.split('.')
+val majorVersion = versionParts[0].toInt()
+val minorVersion = versionParts[1].toInt()
 fun signingValue(name: String): String = providers.environmentVariable(name).orNull
     ?.takeIf { it.isNotBlank() } ?: error("Required release signing environment variable: $name")
 android {
@@ -18,7 +15,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = majorVersion * 100000 + minorVersion
-        versionName = "$majorVersion.$minorVersion.$stampVersion"
+        versionName = releaseVersion
         ndk { abiFilters += "arm64-v8a" }
         externalNativeBuild { cmake { cppFlags += "-std=c++17" } }
     }
